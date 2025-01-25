@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Product</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script>
+        function confirmPayment(orderId) {
+            if (confirm("Do you want to accept payment confirmation?")) {
+                window.location.href = `/confirm_payment/${orderId}`;
+            }
+        }
+
+        // Function to display QR code in a modal
+        function showQRCode(src) {
+            document.getElementById("qrModalImage").src = src;
+            $('#qrModal').modal('show');
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+
+        .form-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .qr-code {
+            max-width: 50px;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+
+        .table td img {
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+        }
+
+        .modal-body img {
+            width: 100%; /* Make the QR code image fill the modal */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mt-5">
+        <div class="form-container">
+            <h2>Add Product</h2>
+            <form method="POST" action="{{ url_for('add_product') }}">
+                <!-- Form fields -->
+                <div class="form-group">
+                    <label for="name">Product Name</label>
+                    <input type="text" class="form-control" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="quantity">Quantity</label>
+                    <input type="number" class="form-control" id="quantity" name="quantity" required>
+                </div>
+                <div class="form-group">
+                    <label for="price">Price</label>
+                    <input type="number" class="form-control" id="price" name="price" required>
+                </div>
+                <div class="form-group">
+                    <label for="manufacture_date">Manufacture Date</label>
+                    <input type="date" id="manufacture_date" name="manufacture_date" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Add Product</button>
+                <a href="{{ url_for('logout') }}" class="btn btn-secondary">Logout</a>
+            </form>
+
+            {% if qr_code_path %}
+            <h3>QR Code for Added Product</h3>
+            <!-- Make the QR code clickable -->
+            <img src="{{ url_for('static', filename='qr_codes/' + qr_code_path.split('/')[-1]) }}" alt="QR Code" class="qr-code" onclick="showQRCode(this.src)">
+            {% endif %}
+        </div>
+
+        <hr>
+
+        <h3 class="mt-4">Order Management</h3>
+        <a href="{{ url_for('view_orders_farmer') }}" class="btn btn-info">View Orders</a>
+        <a href="{{ url_for('view_all_farmer_products') }}" class="btn btn-link mt-3">View All Products</a>
+        
+            <a href="{{ url_for('view_reviews_farmer') }}" class="btn btn-link">See Reviews</a>
+        
+        <hr>
+
+        <h3 class="mt-4">Accepted and Rejected Orders</h3>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Quantity</th>
+                    <th>Status</th>
+                    <th>Product Chain</th>
+                    <th>Payment</th>
+                    <th>QR Code</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in accepted_rejected_orders %}
+                <tr>
+                    <td>{{ order.product.name }}</td>
+                    <td>{{ order.product.quantity }}</td>
+                    <td>{{ order.status }}</td>
+                    <td>{{ order.chain }}</td>
+                    <td>
+                        {% if order.status == 'accepted' %}
+                        <button onclick="confirmPayment({{ order.id }})" class="btn btn-success">Confirm Payment</button>
+                        {% else %}
+                        <button class="btn btn-secondary" disabled>Not Accepted</button>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if order.status == 'accepted' %}
+                        <!-- QR Code as clickable image -->
+                        <img src="{{ url_for('static', filename='qr_codes/' + order.product.id|string + '.png') }}" alt="QR Code" onclick="showQRCode(this.src)">
+                        {% else %}
+                        N/A
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center">No accepted or rejected orders.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal for displaying the QR code larger -->
+    <div class="modal fade" id="qrModal" tabindex="-1" role="dialog" aria-labelledby="qrModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="qrModalLabel">QR Code</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <img id="qrModalImage" src="" alt="QR Code">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap and jQuery scripts for the modal -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.7/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,93 @@
+<!-- distributor_view_products.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distributor View Products</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script>
+        function confirmPayment(orderId) {
+            if (confirm("Do you want to confirm the payment?")) {
+                window.location.href = `/confirm_payment/${orderId}`;
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Available Products</h2>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <td>{{ product.name }}</td>
+                    <td>{{ product.quantity }}</td>
+                    <td>{{ product.price }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <hr>
+
+        <h3>Your Orders</h3>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Quantity</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in accepted_orders %}
+                <tr>
+                    <td>{{ order.product.name }}</td>
+                    <td>{{ order.product.quantity }}</td>
+                    <td>{{ order.status }}</td>
+                    <td>
+                        <button onclick="confirmPayment({{ order.id }})" class="btn btn-success">Confirm Payment</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <hr>
+
+        <h3>Pending Orders</h3>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Quantity</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in waiting_orders %}
+                <tr>
+                    <td>{{ order.product.name }}</td>
+                    <td>{{ order.product.quantity }}</td>
+                    <td>{{ order.status }}</td>
+                    <td>
+                        <a href="{{ url_for('update_order_status', order_id=order.id, action='accept') }}" class="btn btn-success">Accept</a>
+                        <a href="{{ url_for('update_order_status', order_id=order.id, action='reject') }}" class="btn btn-danger">Reject</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

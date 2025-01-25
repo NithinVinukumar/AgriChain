@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriChain Product Search</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        /* General Page Styling */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        /* Input and Button Styling */
+        input[type="text"] {
+            font-size: 1.1rem;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            font-size: 1.1rem;
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Table Styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        thead {
+            background-color: #007bff;
+            color: white;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        tbody tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        /* Modal Styling */
+        .modal-content {
+            border-radius: 8px;
+        }
+
+        .modal-header {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            background-color: #f9f9f9;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+        /* Media Query for Mobile Devices */
+        @media (max-width: 600px) {
+            .container {
+                width: 90%;
+            }
+
+            button, input[type="text"] {
+                width: 100%;
+                margin-top: 10px;
+            }
+
+            th, td {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Search for a Product</h1>
+    <input type="text" id="searchBox" placeholder="Enter Product ID" class="form-control mb-3">
+    <button class="btn btn-primary" onclick="searchProduct()">Search</button>
+
+    <table class="table table-bordered mt-3" id="productTable" style="display: none;">
+        <thead>
+            <tr>
+                <th>Product Name</th>
+                <th>Quantity</th>
+                <th>Final Price</th>
+                <th>Farmer Name</th>
+                <th>Date</th>
+                <th>Review</th>
+            </tr>
+        </thead>
+        <tbody id="productBody"></tbody>
+    </table>
+</div>
+
+<!-- Review Modal -->
+<div class="modal fade" id="reviewModal" tabindex="-1" role="dialog" aria-labelledby="reviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reviewModalLabel">Submit a Review</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="rating">Rating:</label>
+                    <select id="rating" class="form-control">
+                        <option value="1">1 Star</option>
+                        <option value="2">2 Stars</option>
+                        <option value="3">3 Stars</option>
+                        <option value="4">4 Stars</option>
+                        <option value="5">5 Stars</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="reviewText">Review:</label>
+                    <textarea id="reviewText" class="form-control" rows="3"></textarea>
+                </div>
+                <input type="hidden" id="productId" value="">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="submitReview()">Submit Review</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script for product search and modal management -->
+<script>
+    function searchProduct() {
+        const productId = document.getElementById('searchBox').value;
+
+        fetch(`/product/${productId}`)
+            .then(response => response.json())
+            .then(data => {
+                const productTable = document.getElementById('productTable');
+                const productBody = document.getElementById('productBody');
+                
+                productBody.innerHTML = ''; // Clear previous results
+
+                if (data.product) {
+                    productTable.style.display = '';
+                    const row = `
+                        <tr>
+                            <td>${data.product.name}</td>
+                            <td>${data.product.quantity}</td>
+                            <td>${data.product.price}</td>
+                            <td>${data.product.farmer_name}</td>
+                            <td>${data.product.manufacture_date}</td>
+                            <td>
+                                <button class="btn btn-primary" onclick="openReviewModal(${data.product.id})">Review</button>
+                            </td>
+                        </tr>`;
+                    productBody.innerHTML = row;
+                } else {
+                    productTable.style.display = 'none';
+                    alert('Product not found');
+                }
+            });
+    }
+
+    function openReviewModal(productId) {
+        document.getElementById('productId').value = productId;
+        $('#reviewModal').modal('show');
+    }
+
+    function submitReview() {
+        const productId = document.getElementById('productId').value;
+        const rating = document.getElementById('rating').value;
+        const reviewText = document.getElementById('reviewText').value;
+
+        fetch(`/product/${productId}/review`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ rating, reviewText })
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('Review submitted successfully!');
+                $('#reviewModal').modal('hide');
+                document.getElementById('searchBox').value = ''; // Clear search box
+                document.getElementById('productTable').style.display = 'none'; // Hide table
+            } else {
+                alert('Error submitting review.');
+            }
+        });
+    }
+</script>
+
+<!-- Bootstrap JS, Popper.js, and jQuery -->
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+</body>
+</html>

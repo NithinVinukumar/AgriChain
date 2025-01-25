@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Available Products</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #e6f7ff; /* Light blue background */
+            color: #07074d;
+            padding: 20px;
+        }
+
+        .main-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 48px;
+        }
+
+        .form-wrapper {
+            margin: 0 auto;
+            max-width: 900px;
+            width: 100%;
+            background: white;
+            padding: 40px;
+            box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        h2 {
+            font-weight: 600;
+            font-size: 28px;
+            line-height: 34px;
+            color: #07074d;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .accordion .card-header {
+            background-color: #257089; /* Light blue header */
+            color: white;
+            padding: 12px;
+        }
+
+        .accordion .btn-link {
+            color: white;
+            text-decoration: none;
+        }
+
+        .accordion .card {
+            margin-bottom: 15px;
+        }
+
+        .card-body p {
+            margin: 0 0 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+
+        thead {
+            background-color: #257089; /* Light blue table header */
+            color: white;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: center;
+            border: 1px solid #dde3ec;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tbody tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        button, .btn {
+            font-size: 14px;
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: none;
+            background-color: #257089;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover, .btn:hover {
+            box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-primary {
+            background-color: #257089;
+            float: right;
+        }
+
+        a {
+            display: inline-block;
+            font-size: 14px;
+            padding: 10px 25px;
+            margin-top: 15px;
+            border-radius: 5px;
+            background-color: #257089;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        a:hover {
+            box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> <!-- Include jQuery -->
+</head>
+<body>
+    <div class="main-wrapper">
+        <div class="form-wrapper">
+            <h2>Available Products</h2>
+            <div class="accordion" id="productAccordion">
+                {% for product in products %}
+                <div class="card">
+                    <div class="card-header" id="heading{{ product.id }}">
+                        <h5 class="mb-0">
+                            <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse{{ product.id }}" aria-expanded="true" aria-controls="collapse{{ product.id }}">
+                                {{ product.name }} - ₹{{ product.price }}
+                            </button>
+                            {% if session.role == 'distributor' %}
+                            <button class="btn btn-primary buy-btn" data-product-id="{{ product.id }}">Buy</button>
+                            <span class="status" id="status-{{ product.id }}"></span>
+                            {% endif %}
+                        </h5>
+                    </div>
+
+                    <div id="collapse{{ product.id }}" class="collapse" aria-labelledby="heading{{ product.id }}" data-parent="#productAccordion">
+                        <div class="card-body">
+                            <p><strong>Product Name:</strong> {{ product.name }}</p>
+                            <p><strong>Quantity:</strong> {{ product.quantity }}</p>
+                            <p><strong>Price:</strong> ₹{{ product.price }}</p>
+                            <p><strong>Date of Manufacture:</strong> {{ product.manufacture_date }}</p>
+                            <p><strong>Farmer:</strong> {{ product.farmer_name }}</p>
+
+                            <button class="btn btn-info show-farmer-details" data-farmer-id="{{ product.farmer_id }}">Show Farmer Details</button>
+                            <div id="farmer-details-{{ product.farmer_id }}" style="display: none;">
+                                <p><strong>City:</strong> {{ product.farmer_city }}</p>
+                                <p><strong>State:</strong> {{ product.farmer_state }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <p>No products available at this time.</p>
+                {% endfor %}
+            </div>
+
+            <h2>Your Accepted Orders</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Product Name</th>
+                        <th>Quantity</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in accepted_orders %}
+                    <tr>
+                        <td>{{ order.product.name }}</td>
+                        <td>{{ order.product.quantity }}</td>
+                        <td>{{ order.status }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" class="text-center">No accepted orders.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <a href="{{ url_for('index') }}">Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('.buy-btn').click(function() {
+                var productId = $(this).data('product-id');
+                
+                $.ajax({
+                    url: '/buy/' + productId,
+                    type: 'POST',
+                    success: function(response) {
+                        if (response.status === 'waiting') {
+                            $('#status-' + productId).text('Waiting for approval');
+                        } else {
+                            $('#status-' + productId).text('Error processing the order');
+                        }
+                    },
+                    error: function() {
+                        $('#status-' + productId).text('Error processing the order');
+                    }
+                });
+            });
+
+            $('.show-farmer-details').click(function() {
+                var farmerId = $(this).data('farmer-id');
+                $('#farmer-details-' + farmerId).toggle();
+            });
+        });
+    </script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script> <!-- Include Bootstrap JS -->
+</body>
+</html>

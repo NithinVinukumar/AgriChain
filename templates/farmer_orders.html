@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farmer Orders</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f9fa;
+            color: #343a40;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 30px;
+        }
+
+        h2 {
+            font-weight: 600;
+            color: #007bff;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        thead th {
+            background-color: #007bff;
+            color: white;
+            text-align: center;
+            padding: 10px;
+        }
+
+        tbody td {
+            text-align: center;
+            padding: 12px;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tbody tr:hover {
+            background-color: #e9ecef;
+        }
+
+        .btn-success, .btn-danger {
+            font-size: 14px;
+            padding: 6px 12px;
+            margin-right: 5px;
+            transition: background-color 0.3s ease-in-out;
+        }
+
+        .btn-success:hover {
+            background-color: #28a745;
+        }
+
+        .btn-danger:hover {
+            background-color: #dc3545;
+        }
+
+        .btn-primary {
+            display: block;
+            width: 180px;
+            margin: 20px auto;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .text-center {
+            color: #6c757d;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            h2 {
+                font-size: 24px;
+            }
+
+            table {
+                font-size: 14px;
+            }
+
+            .btn-primary {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Your Orders</h2>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Quantity</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>{{ order.product.name }}</td>
+                    <td>{{ order.product.quantity }}</td>
+                    <td>{{ order.status }}</td>
+                    <td>
+                        {% if order.status == 'waiting' %}
+                        <a href="{{ url_for('update_order_status', order_id=order.id, action='accept') }}" class="btn btn-success">Accept</a>
+                        <a href="{{ url_for('update_order_status', order_id=order.id, action='reject') }}" class="btn btn-danger">Reject</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                {% if orders|length == 0 %}
+                <tr>
+                    <td colspan="4" class="text-center">No orders found.</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+        <a href="{{ url_for('add_product') }}" class="btn btn-primary">Back to Add Product</a>
+    </div>
+</body>
+
+</html>
